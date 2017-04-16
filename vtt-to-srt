@@ -1,0 +1,41 @@
+#!/bin/sh
+
+print_usage(){
+    printf '%s FILE...\n' "$(basename "${0}")"
+}
+
+if [ -z "${1}" ]
+then
+    print_usage
+    exit 0
+fi
+
+while [ -n "${1}" ]
+do
+    vtt="${1}"
+
+    shift
+
+    extension="${vtt##*.}"
+
+    if [ ! "${extension}" = "vtt" ]
+    then
+        printf 'Skipping %s.\n' "${vtt}" >&2
+        continue
+    fi
+
+    filename="${vtt%.*}"
+    srt="${filename}.srt"
+
+    exec > "${srt}"
+
+    awk '
+        /^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} -->/ {
+            printf "%d\n",++count
+            gsub("\\.",",")
+            p = 1
+        }
+        p
+        /^$/ { p = 0 }
+    ' "${vtt}"
+done
