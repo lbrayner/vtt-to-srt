@@ -27,9 +27,11 @@ do
     filename="${vtt%.*}"
     srt="${filename}.srt"
 
-    exec > "${srt}"
+    # exec > "${srt}"
 
-    gawk '
+    cp -f "${vtt}" "${srt}"
+
+    gawk -i inplace '
         /^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} -->/ {
             printf "%d\n",++count
             gsub("\\.",",")
@@ -37,5 +39,7 @@ do
         }
         p
         /^$/ { p = 0 }
-    ' "${vtt}"
+    ' "${srt}"
+
+    recode html..utf-8 "${srt}"
 done
