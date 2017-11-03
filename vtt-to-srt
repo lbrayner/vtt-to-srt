@@ -46,5 +46,9 @@ do
         { gsub(p1,""); gsub(p2,""); print $0 }
     ' "${srt}"
 
+    # https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
+    # Cue payloads require characters such as '>' and '&' to be escaped
+    #   with XML sequences: &gt; and &amp; respectively
+    recode -d utf-8..html "${srt}"
     recode html..utf-8 "${srt}"
 done
