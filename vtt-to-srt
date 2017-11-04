@@ -1,54 +1,41 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-print_usage(){
-    printf '%s FILE...\n' "$(basename "${0}")"
-}
+import sys
+from webvtt import WebVTT
+import html
+import os
+from html2text import HTML2Text
+from pysrt.srtitem import SubRipItem
+from pysrt.srttime import SubRipTime
 
-if [ -z "${1}" ]
-then
-    print_usage
-    exit 0
-fi
+script = sys.argv[0]
+args = sys.argv[1:]
 
-while [ -n "${1}" ]
-do
-    vtt="${1}"
+def usage():
+    return "%s FILE...\n" % os.path.basename(script)
 
-    shift
+if len(args) < 1:
+    sys.stdout.write(usage())
+    sys.exit(1)
 
-    extension="${vtt##*.}"
+for arg in args:
+    index = 0
 
-    if [ ! "${extension}" = "vtt" ]
-    then
-        printf 'Skipping %s.\n' "${vtt}" >&2
+    file_name, file_extension = os.path.splitext(arg)
+
+    if not file_extension == ".vtt":
+        sys.stderr.write("Skipping %s.\n" % arg)
         continue
-    fi
 
-    filename="${vtt%.*}"
-    srt="${filename}.srt"
+    srt = open(file_name + ".srt", "w")
 
-    cp -f "${vtt}" "${srt}"
-
-    gawk -i inplace '
-        BEGIN { var="^([0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}).*"}
-        match($0,var,groups) {
-            printf "%d\n",++count
-            sub(var,groups[1])
-            gsub("\\.",",")
-            p = 1
-        }
-        p
-        /^$/ { p = 0 }
-    ' "${srt}"
-
-    gawk -i inplace '
-        BEGIN { p1="</?c[^>]*>"; p2="<[0-9.:]+>" }
-        { gsub(p1,""); gsub(p2,""); print $0 }
-    ' "${srt}"
-
-    # https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
-    # Cue payloads require characters such as '>' and '&' to be escaped
-    #   with XML sequences: &gt; and &amp; respectively
-    recode -d utf-8..html "${srt}"
-    recode html..utf-8 "${srt}"
-done
+    for caption in WebVTT().read(arg):
+        index += 1
+        start = SubRipTime(0,0,caption.start_in_seconds)
+        end = SubRipTime(0,0,caption.end_in_seconds)
+        srt.write(SubRipItem(
+             index
+            ,start
+            ,end
+            ,html.unescape(caption.text))
+                .__str__()+"\n")

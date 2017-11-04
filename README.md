@@ -1,7 +1,9 @@
-# Tools
+# Python 3
+## Packages
 
-- GNU Awk 4.1.4
-- recode 3.7-beta2
+- html2text
+- pysrt
+- WebVTT
 
 # Usage
 
