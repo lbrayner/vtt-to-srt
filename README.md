@@ -3,7 +3,11 @@
 
 - html2text
 - pysrt
-- WebVTT
+- webvtt-py
+
+```
+pip3 install html2text pysrt webvtt-py
+```
 
 # Usage
 
