@@ -15,7 +15,7 @@ def usage():
     return "%s FILE...\n" % os.path.basename(script)
 
 if len(args) < 1:
-    sys.stdout.write(usage())
+    sys.stderr.write(usage())
     sys.exit(1)
 
 for arg in args:
