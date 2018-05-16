@@ -23,7 +23,7 @@ for arg in args:
 
     file_name, file_extension = os.path.splitext(arg)
 
-    if not file_extension == ".vtt":
+    if not file_extension.lower() == ".vtt":
         sys.stderr.write("Skipping %s.\n" % arg)
         continue
 
