@@ -1,3 +1,5 @@
+[![asciicast](https://asciinema.org/a/234035.svg)](https://asciinema.org/a/234035)
+
 # Python 3
 ## Packages
 
