@@ -4,7 +4,6 @@ import sys
 from webvtt import WebVTT
 import html
 import os
-from html2text import HTML2Text
 from pysrt.srtitem import SubRipItem
 from pysrt.srttime import SubRipTime
 
