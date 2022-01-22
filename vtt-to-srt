@@ -33,8 +33,7 @@ for arg in args:
         start = SubRipTime(0,0,caption.start_in_seconds)
         end = SubRipTime(0,0,caption.end_in_seconds)
         srt.write(SubRipItem(
-             index
-            ,start
-            ,end
-            ,html.unescape(caption.text))
-                .__str__()+"\n")
+            index,
+            start,
+            end,
+            html.unescape(caption.text)).__str__()+"\n")
