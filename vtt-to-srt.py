@@ -8,6 +8,8 @@ import sys
 from pysrt.srtitem import SubRipItem, SubRipTime
 from webvtt import WebVTT
 
+COLOURS_PATTERN = re.compile(r'::cue\(\.([^)]+)\)\s*{.*?color:(.*?);.*?}')
+
 parser = argparse.ArgumentParser(description='vtt-to-srt is a command line tool to convert vtt subtitles to srt files')
 parser.add_argument('file', nargs='*',
                     help='a file. The command accepts zero, one or more files as arguments.\n'
@@ -55,7 +57,7 @@ for file in args.file:
     colours = dict()
     if args.strip is False:
         for style in read.styles:
-            colours_found = re.compile(r'::cue\(\.([^)]+)\)\s*{.*?color:(.*?);.*?}').findall(style.text)
+            colours_found = COLOURS_PATTERN.findall(style.text)
             colours_classes = list(map(lambda x: x[0], colours_found))
             colours_values = list(map(lambda x: x[1].replace(" ", ""), colours_found))
             colours = dict(zip(colours_classes, colours_values))
