@@ -12,7 +12,9 @@ pip3 install pysrt webvtt-py
 
 # Synopsis
 
+```
 ./vtt-to-srt FILE...
+```
 
 # Description
 
