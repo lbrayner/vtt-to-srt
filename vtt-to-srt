@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
-
-import sys
-from webvtt import WebVTT
 import html
 import os
-from pysrt.srtitem import SubRipItem
-from pysrt.srttime import SubRipTime
+import re
+import sys
+
+from pysrt.srtitem import SubRipItem, SubRipTime
+from webvtt import WebVTT
 
 script = sys.argv[0]
 args = sys.argv[1:]
 
+
 def usage():
     return "%s FILE...\n" % os.path.basename(script)
+
 
 if len(args) < 1:
     sys.stderr.write(usage())
     sys.exit(1)
+
+
+def replace_colors(raw_text, colours_arg):
+    result = raw_text
+    for k, v in colours_arg.items():
+        if re.search("<c(\\..*?)?\\." + str(k) + "(\\..*?)?>(.*?)</c>", result) is not None:
+            result = re.sub(
+                "<c(?:\\..*?)?\\." + str(k) + "(?:\\..*?)?>(.*?)</c>",
+                lambda x: "<font color=\"" + v + "\">" + html.unescape(x.group(1)) + "</font>",
+                result)
+    return result
+
 
 for arg in args:
     index = 0
@@ -28,12 +42,20 @@ for arg in args:
 
     srt = open(file_name + ".srt", "w")
 
-    for caption in WebVTT().read(arg):
+    read = WebVTT().read(arg)
+
+    colours = dict()
+    for style in read.styles:
+        colours_found = re.compile(r'::cue\(\.([^)]+)\)\s*{.*?color:(.*?);.*?}').findall(style.text)
+        colours_classes = list(map(lambda x: x[0], colours_found))  # [1:] to remove leading .
+        colours_values = list(map(lambda x: x[1].replace(" ", ""), colours_found))
+        colours = dict(zip(colours_classes, colours_values))
+
+    for caption in read.captions:
         index += 1
-        start = SubRipTime(0,0,caption.start_in_seconds)
-        end = SubRipTime(0,0,caption.end_in_seconds)
-        srt.write(SubRipItem(
-            index,
-            start,
-            end,
-            html.unescape(caption.text)).__str__()+"\n")
+        start = SubRipTime(0, 0, caption.start_in_seconds)
+        end = SubRipTime(0, 0, caption.end_in_seconds)
+        caption_text = html.unescape(caption.text)
+        if re.search("<c\\..*?>.*?</c>", caption.raw_text) is not None:
+            caption_text = replace_colors(caption.raw_text, colours)
+        srt.write(SubRipItem(index, start, end, caption_text).__str__() + "\n")

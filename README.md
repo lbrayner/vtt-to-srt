@@ -7,7 +7,7 @@
 - webvtt-py
 
 ```
-pip3 install pysrt webvtt-py
+pip3 install -r requirements.txt
 ```
 
 # Synopsis
