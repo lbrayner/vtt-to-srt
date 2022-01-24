@@ -67,18 +67,10 @@ for file in args.file:
         caption_text = caption.raw_text
         no_tag_found = True
         if args.strip is False:
-            if re.search("<c\\..*?>.*?</c>", caption_text) is not None:
-                caption_text = replace_colors(caption_text, colours, "c")
-                no_tag_found = False
-            if re.search("<i\\..*?>.*?</i>", caption_text) is not None:
-                caption_text = replace_colors(caption_text, colours, "i")
-                no_tag_found = False
-            if re.search("<b\\..*?>.*?</b>", caption_text) is not None:
-                caption_text = replace_colors(caption_text, colours, "b")
-                no_tag_found = False
-            if re.search("<u\\..*?>.*?</u>", caption_text) is not None:
-                caption_text = replace_colors(caption_text, colours, "u")
-                no_tag_found = False
+            for tag in ['c', 'i', 'b', 'u']:
+                if re.search("<" + tag + "\\..*?>.*?</" + tag + ">", caption_text) is not None:
+                    caption_text = replace_colors(caption_text, colours, tag)
+                    no_tag_found = False
         if no_tag_found:
             caption_text = html.unescape(caption.text)
         srt.write(SubRipItem(index, start, end, caption_text).__str__() + "\n")
