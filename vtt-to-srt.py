@@ -56,7 +56,7 @@ for file in args.file:
     if args.strip is False:
         for style in read.styles:
             colours_found = re.compile(r'::cue\(\.([^)]+)\)\s*{.*?color:(.*?);.*?}').findall(style.text)
-            colours_classes = list(map(lambda x: x[0], colours_found))  # [1:] to remove leading .
+            colours_classes = list(map(lambda x: x[0], colours_found))
             colours_values = list(map(lambda x: x[1].replace(" ", ""), colours_found))
             colours = dict(zip(colours_classes, colours_values))
 
