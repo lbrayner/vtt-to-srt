@@ -20,15 +20,21 @@ if len(args) < 1:
     sys.exit(1)
 
 
-def replace_colors(raw_text, colours_arg):
+def replace_colors(raw_text, colours_arg, tag_name):
     result = raw_text
     for k, v in colours_arg.items():
-        if re.search("<c(\\..*?)?\\." + str(k) + "(\\..*?)?>(.*?)</c>", result) is not None:
-            result = re.sub(
-                "<c(?:\\..*?)?\\." + str(k) + "(?:\\..*?)?>(.*?)</c>",
-                lambda x: "<font color=\"" + v + "\">" + html.unescape(x.group(1)) + "</font>",
-                result)
+        regex_string = "<" + tag_name + "(?:\\..*?)?\\." + str(k) + "(?:\\..*?)?>(.*?)</" + tag_name + ">"
+        if re.search(regex_string, result) is not None:
+            result = re.sub(regex_string, lambda x: replace_color(x, tag_name, v), result)
     return result
+
+
+def replace_color(x, tag_name, v):
+    return ("" if tag_name == "c" else ("<" + tag_name + ">")) \
+           + "<font color=\"" + v + "\">" \
+           + html.unescape(x.group(1)) \
+           + "</font>" \
+           + ("" if tag_name == "c" else ("</" + tag_name + ">"))
 
 
 for arg in args:
@@ -55,7 +61,20 @@ for arg in args:
         index += 1
         start = SubRipTime(0, 0, caption.start_in_seconds)
         end = SubRipTime(0, 0, caption.end_in_seconds)
-        caption_text = html.unescape(caption.text)
-        if re.search("<c\\..*?>.*?</c>", caption.raw_text) is not None:
-            caption_text = replace_colors(caption.raw_text, colours)
+        caption_text = caption.raw_text
+        no_tag_found = True
+        if re.search("<c\\..*?>.*?</c>", caption_text) is not None:
+            caption_text = replace_colors(caption_text, colours, "c")
+            no_tag_found = False
+        if re.search("<i\\..*?>.*?</i>", caption_text) is not None:
+            caption_text = replace_colors(caption_text, colours, "i")
+            no_tag_found = False
+        if re.search("<b\\..*?>.*?</b>", caption_text) is not None:
+            caption_text = replace_colors(caption_text, colours, "b")
+            no_tag_found = False
+        if re.search("<u\\..*?>.*?</u>", caption_text) is not None:
+            caption_text = replace_colors(caption_text, colours, "u")
+            no_tag_found = False
+        if no_tag_found:
+            caption_text = html.unescape(caption.text)
         srt.write(SubRipItem(index, start, end, caption_text).__str__() + "\n")
