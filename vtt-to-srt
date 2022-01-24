@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import html
 import os
 import re
@@ -7,17 +8,13 @@ import sys
 from pysrt.srtitem import SubRipItem, SubRipTime
 from webvtt import WebVTT
 
-script = sys.argv[0]
-args = sys.argv[1:]
-
-
-def usage():
-    return "%s FILE...\n" % os.path.basename(script)
-
-
-if len(args) < 1:
-    sys.stderr.write(usage())
-    sys.exit(1)
+parser = argparse.ArgumentParser(description='vtt-to-srt is a command line tool to convert vtt subtitles to srt files')
+parser.add_argument('file', nargs='*',
+                    help='a file. The command accepts zero, one or more files as arguments.\n'
+                         'For each .vtt, a .srt will be generated in the same folder.\n'
+                         'Any other extension is ignored.')
+parser.add_argument('-s', dest='strip', action='store_true', help='strip all tags in output srt')
+args = parser.parse_args()
 
 
 def replace_colors(raw_text, colours_arg, tag_name):
@@ -37,25 +34,31 @@ def replace_color(x, tag_name, v):
            + ("" if tag_name == "c" else ("</" + tag_name + ">"))
 
 
-for arg in args:
+if len(args.file) == 0:
+    for file in os.listdir():
+        if file.endswith(".vtt"):
+            args.file.append(file)
+
+for file in args.file:
     index = 0
 
-    file_name, file_extension = os.path.splitext(arg)
+    file_name, file_extension = os.path.splitext(file)
 
     if not file_extension.lower() == ".vtt":
-        sys.stderr.write("Skipping %s.\n" % arg)
+        sys.stderr.write("Skipping %s.\n" % file)
         continue
 
     srt = open(file_name + ".srt", "w")
 
-    read = WebVTT().read(arg)
+    read = WebVTT().read(file)
 
     colours = dict()
-    for style in read.styles:
-        colours_found = re.compile(r'::cue\(\.([^)]+)\)\s*{.*?color:(.*?);.*?}').findall(style.text)
-        colours_classes = list(map(lambda x: x[0], colours_found))  # [1:] to remove leading .
-        colours_values = list(map(lambda x: x[1].replace(" ", ""), colours_found))
-        colours = dict(zip(colours_classes, colours_values))
+    if args.strip is False:
+        for style in read.styles:
+            colours_found = re.compile(r'::cue\(\.([^)]+)\)\s*{.*?color:(.*?);.*?}').findall(style.text)
+            colours_classes = list(map(lambda x: x[0], colours_found))  # [1:] to remove leading .
+            colours_values = list(map(lambda x: x[1].replace(" ", ""), colours_found))
+            colours = dict(zip(colours_classes, colours_values))
 
     for caption in read.captions:
         index += 1
@@ -63,18 +66,19 @@ for arg in args:
         end = SubRipTime(0, 0, caption.end_in_seconds)
         caption_text = caption.raw_text
         no_tag_found = True
-        if re.search("<c\\..*?>.*?</c>", caption_text) is not None:
-            caption_text = replace_colors(caption_text, colours, "c")
-            no_tag_found = False
-        if re.search("<i\\..*?>.*?</i>", caption_text) is not None:
-            caption_text = replace_colors(caption_text, colours, "i")
-            no_tag_found = False
-        if re.search("<b\\..*?>.*?</b>", caption_text) is not None:
-            caption_text = replace_colors(caption_text, colours, "b")
-            no_tag_found = False
-        if re.search("<u\\..*?>.*?</u>", caption_text) is not None:
-            caption_text = replace_colors(caption_text, colours, "u")
-            no_tag_found = False
+        if args.strip is False:
+            if re.search("<c\\..*?>.*?</c>", caption_text) is not None:
+                caption_text = replace_colors(caption_text, colours, "c")
+                no_tag_found = False
+            if re.search("<i\\..*?>.*?</i>", caption_text) is not None:
+                caption_text = replace_colors(caption_text, colours, "i")
+                no_tag_found = False
+            if re.search("<b\\..*?>.*?</b>", caption_text) is not None:
+                caption_text = replace_colors(caption_text, colours, "b")
+                no_tag_found = False
+            if re.search("<u\\..*?>.*?</u>", caption_text) is not None:
+                caption_text = replace_colors(caption_text, colours, "u")
+                no_tag_found = False
         if no_tag_found:
             caption_text = html.unescape(caption.text)
         srt.write(SubRipItem(index, start, end, caption_text).__str__() + "\n")
