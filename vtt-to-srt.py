@@ -50,7 +50,7 @@ for file in args.file:
         sys.stderr.write("Skipping %s.\n" % file)
         continue
 
-    srt = open(file_name + ".srt", "w")
+    srt = open(file_name + ".srt", "w", encoding='utf-8')
 
     read = WebVTT().read(file)
 
