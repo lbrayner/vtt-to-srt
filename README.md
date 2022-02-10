@@ -1,15 +1,15 @@
 # 💾 Installation
 
 ```
-pip3 install -r requirements.txt
+pip3 install .
 ```
 
 # 🖥️ Command line interface
 
 ```
-usage: vtt-to-srt [-h] [-s] [file [file ...]]
+usage: vtt_to_srt [-h] [-s] [file [file ...]]
 
-vtt-to-srt is a command line tool to convert vtt subtitles to srt files
+vtt_to_srt  is a command line tool to convert vtt subtitles to srt files
 
 positional arguments:
   file        a file. The command accepts zero, one or more files as arguments. For each .vtt, a .srt will be
