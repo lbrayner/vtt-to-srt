@@ -1,0 +1,6 @@
+/venv
+/.idea
+*.vtt
+*.srt
+/build/
+/vtt_to_srt.egg-info
