@@ -1,4 +1,4 @@
-#vtt-to-srt subtitle converter
+# vtt-to-srt subtitle converter
 
 A simple python module to convert vtt files to srt files **_with colours_**!
 
